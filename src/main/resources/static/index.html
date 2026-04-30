@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Auth App</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2 id="formTitle">Login</h2>
+
+    <input id="name" placeholder="Name (Signup only)" style="display:none">
+    <div id="nameError" class="error"></div>
+
+    <input id="email" placeholder="Email">
+    <div id="emailError" class="error"></div>
+
+    <input id="password" type="password" placeholder="Password">
+    <div id="passError" class="error"></div>
+
+    <button id="actionBtn">Login</button>
+
+    <p id="toggleText" class="toggle">
+        Don't have an account? Signup
+    </p>
+
+    <button id="protectedBtn">Call Protected API</button>
+    <button id="logoutBtn">Logout</button>
+
+    <h3 id="msg"></h3>
+
+</div>
+
+<!-- JS FILE -->
+<script src="app.js"></script>
+
+</body>
+</html>
