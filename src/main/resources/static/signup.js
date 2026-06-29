@@ -7,7 +7,7 @@ async function signup() {
     const terms = document.getElementById("terms").checked;
 
     const message = document.getElementById("message");
-    const button = document.querySelector("button");
+    const button = document.querySelector(".primary-action");
 
     message.style.color = "red";
 

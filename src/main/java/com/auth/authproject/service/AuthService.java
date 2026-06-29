@@ -1,10 +1,10 @@
 package com.auth.authproject.service;
 
 import com.auth.authproject.dto.AuthRequest;
-import com.auth.authproject.dto.RegisterRequest;
 import com.auth.authproject.dto.AuthResponse;
-import com.auth.authproject.entity.User;
+import com.auth.authproject.dto.RegisterRequest;
 import com.auth.authproject.entity.RefreshToken;
+import com.auth.authproject.entity.User;
 import com.auth.authproject.repository.UserRepository;
 import com.auth.authproject.security.JwtService;
 
@@ -29,7 +29,6 @@ public class AuthService {
         this.refreshTokenService = refreshTokenService;
     }
 
-    // 🔹 REGISTER
     public AuthResponse register(RegisterRequest request) {
 
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -40,22 +39,18 @@ public class AuthService {
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole("USER");
 
         User savedUser = userRepository.save(user);
 
-        // 🔐 access token
-        String accessToken = jwtService.generateToken(savedUser.getEmail());
+        String accessToken = jwtService.generateToken(savedUser.getEmail(), savedUser.getRole());
 
-        // 🔄 clean old tokens
         refreshTokenService.deleteByUserId(savedUser.getId());
-
-        // 🔄 create new refresh token
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(savedUser);
 
-        return new AuthResponse(accessToken, refreshToken.getToken());
+        return buildAuthResponse(accessToken, refreshToken.getToken(), savedUser);
     }
 
-    // 🔹 LOGIN
     public AuthResponse login(AuthRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
@@ -65,18 +60,14 @@ public class AuthService {
             throw new RuntimeException("Invalid password");
         }
 
-        String accessToken = jwtService.generateToken(user.getEmail());
+        String accessToken = jwtService.generateToken(user.getEmail(), user.getRole());
 
-        // 🔄 clean old tokens
         refreshTokenService.deleteByUserId(user.getId());
-
-        // 🔄 create new refresh token
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
-        return new AuthResponse(accessToken, refreshToken.getToken());
+        return buildAuthResponse(accessToken, refreshToken.getToken(), user);
     }
 
-    // 🔹 REFRESH TOKEN
     public AuthResponse refreshToken(String requestToken) {
 
         RefreshToken refreshToken = refreshTokenService.findByToken(requestToken)
@@ -84,21 +75,30 @@ public class AuthService {
 
         refreshTokenService.verifyExpiration(refreshToken);
 
-        String accessToken = jwtService.generateToken(
-                refreshToken.getUser().getEmail()
-        );
+        User user = refreshToken.getUser();
+        String accessToken = jwtService.generateToken(user.getEmail(), user.getRole());
 
-        return new AuthResponse(accessToken, requestToken);
+        return buildAuthResponse(accessToken, requestToken, user);
     }
- // 🔹 LOGOUT
+
     public String logout(String requestToken) {
 
         RefreshToken token = refreshTokenService.findByToken(requestToken)
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
 
-        // delete token
         refreshTokenService.deleteByUserId(token.getUser().getId());
 
         return "Logged out successfully";
+    }
+
+    private AuthResponse buildAuthResponse(String accessToken, String refreshToken, User user) {
+        return new AuthResponse(
+                accessToken,
+                refreshToken,
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole()
+        );
     }
 }

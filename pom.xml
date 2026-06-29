@@ -15,8 +15,8 @@
     <groupId>com.auth</groupId>
     <artifactId>authproject</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>authproject</name>
-    <description>Authentication Project</description>
+    <name>AuthVault</name>
+    <description>Authentication and authorization project</description>
 
     <properties>
         <java.version>17</java.version>
@@ -81,6 +81,12 @@
     <artifactId>postgresql</artifactId>
     <scope>runtime</scope>
 </dependency>
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
 
         <!-- Testing -->
         <dependency>

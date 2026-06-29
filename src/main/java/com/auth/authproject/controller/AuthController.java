@@ -6,9 +6,13 @@ import org.springframework.web.bind.annotation.*;
 import com.auth.authproject.dto.AuthRequest;
 import com.auth.authproject.dto.RegisterRequest;
 import com.auth.authproject.dto.AuthResponse;
+import com.auth.authproject.dto.ForgotPasswordRequest;
+import com.auth.authproject.dto.ForgotPasswordResponse;
 import com.auth.authproject.dto.RefreshRequest;
+import com.auth.authproject.dto.ResetPasswordRequest;
 import com.auth.authproject.dto.LogoutRequest;
 import com.auth.authproject.service.AuthService;
+import com.auth.authproject.service.PasswordResetService;
 
 import jakarta.validation.Valid;
 
@@ -17,9 +21,11 @@ import jakarta.validation.Valid;
 public class AuthController {
 
     private final AuthService authService;
+    private final PasswordResetService passwordResetService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, PasswordResetService passwordResetService) {
         this.authService = authService;
+        this.passwordResetService = passwordResetService;
     }
     
     @GetMapping("/")
@@ -52,6 +58,18 @@ public class AuthController {
     public ResponseEntity<String> logout(@Valid @RequestBody LogoutRequest request) {
         return ResponseEntity.ok(
                 authService.logout(request.getRefreshToken())
+        );
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ForgotPasswordResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        return ResponseEntity.ok(passwordResetService.createResetToken(request.getEmail()));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return ResponseEntity.ok(
+                passwordResetService.resetPassword(request.getToken(), request.getPassword())
         );
     }
 }

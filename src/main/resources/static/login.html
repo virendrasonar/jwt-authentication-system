@@ -4,64 +4,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-
+    <title>AuthVault - Sign in</title>
     <link rel="stylesheet" href="login.css">
 </head>
 
 <body>
+    <main class="auth-shell">
+        <section class="brand-panel" aria-label="Application overview">
+            <div class="brand-mark">AV</div>
+            <div>
+                <p class="eyebrow">Secure access workspace</p>
+                <h1>Manage users and protect APIs with role-based access.</h1>
+                <p class="brand-copy">
+                    Sign in to view your dashboard. Admin accounts can manage users, roles, and protected resources.
+                </p>
+            </div>
+            <div class="status-card">
+                <span class="status-dot"></span>
+                <div>
+                    <strong>JWT security enabled</strong>
+                    <p>Access tokens, refresh tokens, and role checks are active.</p>
+                </div>
+            </div>
+        </section>
 
-    <div class="container">
-
-        <div class="logo">🔐</div>
-
-        <h1>Welcome Back</h1>
-        <p class="subtitle">Login to continue</p>
-
-        <div class="input-group">
-            <input
-                type="email"
-                id="email"
-                placeholder="📧 Email Address"
-                autocomplete="email">
-        </div>
-
-        <div class="input-group">
-
-            <div class="password-box">
-
-                <input
-                    type="password"
-                    id="password"
-                    placeholder="🔒 Password"
-                    autocomplete="current-password">
-
-                <span
-                    class="eye"
-                    onclick="togglePassword('password', this)">
-                    👁
-                </span>
-
+        <section class="auth-card" aria-label="Login form">
+            <div class="card-header">
+                <p class="eyebrow">Welcome back</p>
+                <h2>Sign in</h2>
+                <p>Use your account credentials to continue.</p>
             </div>
 
-        </div>
+            <label class="field">
+                <span>Email address</span>
+                <input type="email" id="email" placeholder="admin@example.com" autocomplete="email">
+                <small class="field-note">Use a valid email format such as name@domain.com.</small>
+            </label>
 
-        <button onclick="login()">
-            Login
-        </button>
+            <label class="field">
+                <span>Password</span>
+                <div class="password-box">
+                    <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password">
+                    <button type="button" class="text-button" onclick="togglePassword('password', this)">Show</button>
+                </div>
+            </label>
 
-        <p id="message"></p>
+            <div class="form-link-row">
+                <a href="forgot-password.html">Forgot password?</a>
+            </div>
 
-        <div class="footer">
-            Don't have an account?
-            <br>
-            <a href="signup.html">Create Account</a>
-        </div>
+            <button class="primary-action" onclick="login()">Sign in</button>
 
-    </div>
+            <p id="message" role="status"></p>
+
+            <p class="footer">
+                New here?
+                <a href="signup.html">Create an account</a>
+            </p>
+        </section>
+    </main>
 
     <script src="login.js"></script>
-
 </body>
 
 </html>

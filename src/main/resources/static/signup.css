@@ -1,185 +1,88 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url("login.css");
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Poppins',sans-serif;
+.auth-shell {
+    grid-template-columns: 1fr 480px;
+    padding: 24px 0;
 }
 
-body{
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    overflow:hidden;
-background: linear-gradient(135deg, #0b1120 0%, #172554 50%, #1d4ed8 100%);   
- }
-
-.container{
-    width:450px;
-    max-width:100%;
-    background:rgba(255,255,255,0.08);
-    backdrop-filter:blur(18px);
-    border:1px solid rgba(255,255,255,.15);
-    border-radius:18px;
-    box-shadow:0 15px 40px rgba(0,0,0,.35);
-    padding:22px 28px;
-    color:#fff;
+.auth-card {
+    padding: 22px 26px;
 }
 
-.logo{
-    font-size:38px;
-    text-align:center;
+.card-header {
+    margin-bottom: 16px;
 }
 
-h1{
-    text-align:center;
-    font-size:24px;
-    font-weight:600;
-    margin-bottom:22px;
-}
-.input-group{
-    margin-bottom:28px;
+.card-header h2 {
+    margin-bottom: 0;
 }
 
-.input-group label{
-    display:block;
-    font-size:14px;
-    font-weight:500;
-    margin-bottom:5px;
-    color:#e2e8f0;
+.field {
+    margin-bottom: 12px;
 }
 
-.input-group input{
-    width:100%;
-    padding:11px 14px;
-    border:1px solid #d1d5db;
-    outline:none;
-    border-radius:10px;
-    background:#ffffff;
-    color:#1f2937;
-    font-size:14px;
-    transition:0.3s ease;
+.field input {
+    height: 43px;
 }
 
-.input-group input::placeholder{
-    color:#757e8a;
+.checkbox {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 4px 0 14px;
+    color: #475467;
+    font-size: 14px;
+    font-weight: 700;
 }
 
-.input-group input:focus{
-    border-color:#2563eb;
-    box-shadow:0 0 8px rgba(37,99,235,.3);
-}
-.password-box{
-    position:relative;
+.checkbox input {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--primary);
 }
 
-.password-box input{
-    padding-right:45px;
+.strength {
+    min-height: 14px;
+    margin-top: -2px;
+    font-size: 12px;
+    font-weight: 800;
 }
 
-.eye{
-    position:absolute;
-    top:50%;
-    right:14px;
-    transform:translateY(-50%);
-    cursor:pointer;
-    font-size:18px;
-    color:#757e8a;
+.strength.weak {
+    color: #dc2626;
 }
 
-.strength{
-    margin-top:5px;
-    font-size:12px;
-    font-weight:600;
-    
+.strength.medium {
+    color: #b45309;
 }
 
-.checkbox{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    margin:14px 0;
-    font-size:13px;
+.strength.strong {
+    color: #15803d;
 }
 
-.checkbox input{
-    width:16px;
-    height:16px;
-    cursor:pointer;
+@media (max-width: 860px) {
+    .auth-shell {
+        grid-template-columns: 1fr;
+    }
 }
 
-button{
-    width:100%;
-    padding:12px;
-    border:none;
-    border-radius:10px;
-    background:linear-gradient(135deg,#3b82f6,#2563eb);
-    color:#fff;
-    font-size:15px;
-    font-weight:600;
-    cursor:pointer;
-    transition:.3s;
-}
+@media (min-width: 861px) {
+    .auth-shell .brand-panel {
+        gap: 28px;
+    }
 
-button:hover{
-    transform:translateY(-2px);
-    box-shadow:0 8px 20px rgba(37,99,235,.45);
-}
+    .auth-shell .brand-panel h1 {
+        font-size: clamp(38px, 6vw, 68px);
+        line-height: 1;
+    }
 
-button:active{
-    transform:scale(.98);
-}
+    .auth-shell .brand-copy {
+        margin-top: 20px;
+        font-size: 18px;
+        line-height: 1.65;
+    }
 
-#message{
-    text-align:center;
-    margin-top:12px;
-    min-height:18px;
-    font-size:14px;
-    font-weight:500;
-}
-
-.footer{
-    margin-top:8px;
-    text-align:center;
-    font-size:14px;
-    color:#d1d5db;
-    line-height:1;
-}
-
-.footer a{
-    color:#60a5fa;
-    text-decoration:none;
-    font-weight:600;
-}
-
-.footer a:hover{
-    color:#93c5fd;
-    text-decoration:underline;
-}
-
-@media(max-width:480px){
-
-.container{
-    width:92%;
-    padding:18px;
-}
-
-.logo{
-    font-size:38px;
-}
-
-h1{
-    font-size:22px;
-}
-
-.input-group input{
-    padding:10px 12px;
-}
-
-button{
-    padding:11px;
-}
-
+    .auth-shell .status-card {
+        padding: 18px;
+    }
 }

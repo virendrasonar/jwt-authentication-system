@@ -2,59 +2,129 @@
 <html lang="en">
 
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Dashboard</title>
-
+<title>AuthVault - Dashboard</title>
 <link rel="stylesheet" href="dashboard.css">
-
 </head>
 
 <body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand-row">
+            <span class="brand-mark">AV</span>
+            <div>
+                <strong>AuthVault</strong>
+                <small>Access Console</small>
+            </div>
+        </div>
 
-<div class="dashboard-container">
+        <nav class="nav-list" aria-label="Primary">
+            <a id="dashboardNavLink" class="active" href="dashboard.html">Dashboard</a>
+            <a id="usersNavLink" href="#">Users</a>
+            <a id="accountNavLink" href="#accountPanel">Account</a>
+        </nav>
+    </aside>
 
-<div class="card">
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Authenticated workspace</p>
+                <h1 id="welcome">Loading dashboard...</h1>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </header>
 
-<h1>🔐 JWT Authentication Dashboard</h1>
+        <section class="hero-panel">
+            <div>
+                <p id="message">Checking your session...</p>
+                <h2>Your access is active and protected by JWT.</h2>
+            </div>
+            <div class="session-badge">
+                <span></span>
+                Session verified
+            </div>
+        </section>
 
-<h2 id="welcome">Loading...</h2>
+        <section id="accountPanel" class="metric-grid" aria-label="Account summary">
+            <article class="metric-card">
+                <span>Name</span>
+                <strong id="name">-</strong>
+            </article>
+            <article class="metric-card">
+                <span>Email</span>
+                <strong id="email">-</strong>
+            </article>
+            <article class="metric-card">
+                <span>Role</span>
+                <strong id="role">-</strong>
+            </article>
+            <article class="metric-card">
+                <span>Status</span>
+                <strong class="success">Authenticated</strong>
+            </article>
+        </section>
 
-<p id="message"></p>
+        <section id="adminPanel" class="panel admin-panel hidden">
+            <div class="section-header">
+                <div>
+                    <p class="eyebrow">Admin only</p>
+                    <h2>User management</h2>
+                    <p class="muted">Create users, change roles, and remove accounts.</p>
+                </div>
+                <button class="secondary-btn" onclick="loadUsers()">Refresh</button>
+            </div>
 
-<hr>
+            <form id="userForm" class="user-form">
+                <input type="hidden" id="userId">
+                <label id="userNameField">
+                    <span>Name</span>
+                    <input id="userName" type="text" placeholder="Full name" required>
+                </label>
+                <label id="userEmailField">
+                    <span>Email</span>
+                    <input id="userEmail" type="email" placeholder="user@example.com" required>
+                </label>
+                <label id="userPasswordField">
+                    <span>Password</span>
+                    <input id="userPassword" type="password" placeholder="Password">
+                </label>
+                <label class="role-select-field">
+                    <span>Role</span>
+                    <input type="hidden" id="userRole" value="USER">
+                    <div class="role-segment" role="group" aria-label="Role">
+                        <button type="button" class="role-option active" data-role="USER" onclick="setRole('USER')">User</button>
+                        <button type="button" class="role-option" data-role="ADMIN" onclick="setRole('ADMIN')">Admin</button>
+                    </div>
+                </label>
+                <div class="form-actions">
+                    <button type="submit" class="primary-btn" id="saveUserButton">Add user</button>
+                    <button type="button" class="secondary-btn hidden" id="cancelEditButton" onclick="resetForm()">Cancel</button>
+                </div>
+            </form>
 
-<div class="info">
+            <p id="adminMessage" role="status"></p>
 
-<p><strong>Username :</strong>
-<span id="username"></span>
-</p>
-
-<p><strong>Status :</strong>
-<span class="success">Authenticated</span>
-</p>
-
-<p><strong>Authentication :</strong>
-JWT Verified
-</p>
-
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTable"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
 </div>
 
-<button class="logout-btn" onclick="logout()">
-
-Logout
-
-</button>
-
-</div>
-
-</div>
+<div id="toast" class="toast hidden" role="status"></div>
 
 <script src="dashboard.js"></script>
-
 </body>
 
 </html>

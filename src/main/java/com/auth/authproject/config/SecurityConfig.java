@@ -22,37 +22,34 @@ public class SecurityConfig {
         this.jwtFilter = jwtFilter;
     }
 
-    // 🔐 Password Encoder
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // 🔐 Security Config
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> {}) // ✅ added
-            .httpBasic(httpBasic -> httpBasic.disable()) // ✅ added
-
+            .cors(cors -> {})
+            .httpBasic(httpBasic -> httpBasic.disable())
             .authorizeHttpRequests(auth -> auth
-            		.requestMatchers(
-            				"/",
-            				"/login.html",
-            		        "/auth/**",
-            		        "/**/*.html",
-            		        "/**/*.css",
-            		        "/**/*.js"
-            		).permitAll()
+                .requestMatchers(
+                    "/",
+                    "/login.html",
+                    "/signup.html",
+                    "/auth/**",
+                    "/**/*.html",
+                    "/**/*.css",
+                    "/**/*.js"
+                ).permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
-
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

@@ -2,178 +2,112 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>JWT Authentication - Sign Up</title>
-
+    <title>AuthVault - Create account</title>
     <link rel="stylesheet" href="signup.css">
-
 </head>
 
 <body>
+    <main class="auth-shell">
+        <section class="brand-panel" aria-label="Application overview">
+            <div class="brand-mark">AV</div>
+            <div>
+                <p class="eyebrow">Start securely</p>
+                <h1>Create a user account for your protected dashboard.</h1>
+                <p class="brand-copy">
+                    New accounts start with user access. Admins can promote users and manage accounts from the dashboard.
+                </p>
+            </div>
+            <div class="status-card">
+                <span class="status-dot"></span>
+                <div>
+                    <strong>User role by default</strong>
+                    <p>Admin access is granted only by an existing admin.</p>
+                </div>
+            </div>
+        </section>
 
-    <div class="container">
-
-        <div class="logo">🔐</div>
-
-        <h1>JWT Authentication</h1>
-
-        <div class="input-group">
-
-            <input
-                type="text"
-                id="name"
-                placeholder="Full Name">
-
-        </div>
-
-        <div class="input-group">
-
-            <input
-                type="email"
-                id="email"
-                placeholder="Email Address">
-
-        </div>
-
-        <div class="input-group">
-
-            <div class="password-box">
-
-                <input
-                    type="password"
-                    id="password"
-                    placeholder="Create Password">
-
-                <span
-                    class="eye"
-                    onclick="togglePassword('password',this)">
-                    👁
-                </span>
-
+        <section class="auth-card" aria-label="Signup form">
+            <div class="card-header">
+                <p class="eyebrow">Create account</p>
+                <h2>Join AuthVault</h2>
             </div>
 
-            <div
-                id="strength"
-                class="strength">
-            </div>
-
-        </div>
-
-        <div class="input-group">
-
-            <div class="password-box">
-
-                <input
-                    type="password"
-                    id="confirmPassword"
-                    placeholder="Confirm Password">
-
-                <span
-                    class="eye"
-                    onclick="togglePassword('confirmPassword',this)">
-                    👁
-                </span>
-
-            </div>
-
-        </div>
-
-        <div class="checkbox">
-
-            <input
-                type="checkbox"
-                id="terms">
-
-            <label for="terms">
-                I agree to the Terms & Conditions
+            <label class="field">
+                <span>Full name</span>
+                <input type="text" id="name" placeholder="Your name" autocomplete="name">
             </label>
 
-        </div>
+            <label class="field">
+                <span>Email address</span>
+                <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+                <small class="field-note">Use a valid email format such as name@domain.com.</small>
+            </label>
 
-        <button onclick="signup()">
-            Create Account
-        </button>
+            <label class="field">
+                <span>Password</span>
+                <div class="password-box">
+                    <input type="password" id="password" placeholder="Create a password" autocomplete="new-password">
+                    <button type="button" class="text-button" onclick="togglePassword('password', this)">Show</button>
+                </div>
+                <span id="strength" class="strength"></span>
+            </label>
 
-        <p id="message"></p>
+            <label class="field">
+                <span>Confirm password</span>
+                <div class="password-box">
+                    <input type="password" id="confirmPassword" placeholder="Repeat your password" autocomplete="new-password">
+                    <button type="button" class="text-button" onclick="togglePassword('confirmPassword', this)">Show</button>
+                </div>
+            </label>
 
-        <div class="footer">
+            <label class="checkbox">
+                <input type="checkbox" id="terms">
+                <span>I agree to the Terms & Conditions</span>
+            </label>
 
-            Already have an account?
+            <button class="primary-action" onclick="signup()">Create account</button>
 
-            <a href="login.html">
-                Login
-            </a>
+            <p id="message" role="status"></p>
 
-        </div>
-
-    </div>
+            <p class="footer">
+                Already have an account?
+                <a href="login.html">Sign in</a>
+            </p>
+        </section>
+    </main>
 
     <script src="signup.js"></script>
-
     <script>
-
-        function togglePassword(id, eye) {
-
+        function togglePassword(id, button) {
             const input = document.getElementById(id);
-
-            if (input.type === "password") {
-
-                input.type = "text";
-                eye.innerHTML = "🙈";
-
-            } else {
-
-                input.type = "password";
-                eye.innerHTML = "👁";
-
-            }
-
+            const isPassword = input.type === "password";
+            input.type = isPassword ? "text" : "password";
+            button.innerText = isPassword ? "Hide" : "Show";
         }
 
         const password = document.getElementById("password");
 
         password.addEventListener("keyup", function () {
-
             const value = password.value;
-
             const strength = document.getElementById("strength");
 
             if (value.length === 0) {
-
-                strength.innerHTML = "";
-
+                strength.innerText = "";
+                strength.className = "strength";
+            } else if (value.length < 8) {
+                strength.innerText = "Weak password";
+                strength.className = "strength weak";
+            } else if (/[A-Z]/.test(value) && /[a-z]/.test(value) && /\d/.test(value) && /[^A-Za-z0-9]/.test(value)) {
+                strength.innerText = "Strong password";
+                strength.className = "strength strong";
+            } else {
+                strength.innerText = "Medium password";
+                strength.className = "strength medium";
             }
-            else if (value.length < 8) {
-
-                strength.style.color = "red";
-                strength.innerHTML = "Weak Password";
-
-            }
-            else if (
-                /[A-Z]/.test(value) &&
-                /[a-z]/.test(value) &&
-                /\d/.test(value) &&
-                /[@$!%*?&]/.test(value)
-            ) {
-
-                strength.style.color = "green";
-                strength.innerHTML = "Strong Password";
-
-            }
-            else {
-
-                strength.style.color = "orange";
-                strength.innerHTML = "Medium Password";
-
-            }
-
         });
-
     </script>
-
 </body>
 
 </html>
