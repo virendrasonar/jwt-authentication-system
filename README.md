@@ -21,3 +21,13 @@ $env:JWT_SECRET="change-this-to-a-long-secret"
 
 `DATABASE_URL` may be either `postgresql://...` or `jdbc:postgresql://...`.
 If your database URL does not include credentials, also set `DB_USERNAME` and `DB_PASSWORD`.
+
+On Render, add these environment variables to the web service:
+
+```text
+SPRING_PROFILES_ACTIVE=prod
+DATABASE_URL=<your Render internal PostgreSQL URL>
+JWT_SECRET=<strong secret>
+```
+
+Do not put the database URL into git-tracked properties files.

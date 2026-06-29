@@ -1,10 +1,10 @@
 package com.auth.authproject.config;
 
 import com.zaxxer.hikari.HikariDataSource;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 
 import javax.sql.DataSource;
 import java.net.URI;
@@ -16,9 +16,21 @@ import java.nio.charset.StandardCharsets;
 public class ProductionDataSourceConfig {
 
     @Bean
-    public DataSource dataSource(@Value("${DATABASE_URL}") String databaseUrl,
-                                 @Value("${DB_USERNAME:}") String dbUsername,
-                                 @Value("${DB_PASSWORD:}") String dbPassword) {
+    public DataSource dataSource(Environment environment) {
+        String databaseUrl = firstPresent(
+                environment.getProperty("DATABASE_URL"),
+                environment.getProperty("SPRING_DATASOURCE_URL"),
+                environment.getProperty("POSTGRES_URL")
+        );
+        String dbUsername = firstPresent(
+                environment.getProperty("DB_USERNAME"),
+                environment.getProperty("SPRING_DATASOURCE_USERNAME")
+        );
+        String dbPassword = firstPresent(
+                environment.getProperty("DB_PASSWORD"),
+                environment.getProperty("SPRING_DATASOURCE_PASSWORD")
+        );
+
         DatabaseConnection connection = parseDatabaseUrl(databaseUrl);
 
         HikariDataSource dataSource = new HikariDataSource();
@@ -32,7 +44,9 @@ public class ProductionDataSourceConfig {
 
     private DatabaseConnection parseDatabaseUrl(String databaseUrl) {
         if (databaseUrl == null || databaseUrl.isBlank()) {
-            throw new IllegalStateException("DATABASE_URL is required for prod profile");
+            throw new IllegalStateException(
+                    "Production database URL is required. Set DATABASE_URL to your Render internal PostgreSQL URL."
+            );
         }
 
         if (databaseUrl.startsWith("jdbc:postgresql://")) {
@@ -64,6 +78,16 @@ public class ProductionDataSourceConfig {
 
     private String decode(String value) {
         return URLDecoder.decode(value, StandardCharsets.UTF_8);
+    }
+
+    private String firstPresent(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+
+        return "";
     }
 
     private record DatabaseConnection(String jdbcUrl, String username, String password) {}
