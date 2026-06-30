@@ -339,18 +339,6 @@ The packaged application is written to `target/`.
 - Production hardening should also include rate limiting, account lockout controls, a strict Content Security Policy, secret rotation, and security-event monitoring.
 - AuthVault intentionally displays student-demo and test-credential warnings to avoid being mistaken for a real service.
 
-## Future Improvements
-
-- Docker Compose support for the application and local MySQL
-- Email delivery for password-reset links
-- OAuth2 or OpenID Connect login
-- User profile management
-- Authentication rate limiting and lockout policies
-- Structured audit logging
-- Expanded unit, integration, and security test coverage
-
-These are roadmap ideas and are not implemented in the current project.
-
 ## License
 
 This repository is intended for learning and portfolio demonstration. Add a license file before redistributing it under specific license terms.
