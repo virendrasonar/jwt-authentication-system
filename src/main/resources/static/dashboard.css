@@ -109,7 +109,7 @@ body {
 
 h1 {
     margin-top: 6px;
-    font-size: clamp(28px, 4vw, 44px);
+    font-size: 44px;
     letter-spacing: 0;
 }
 
@@ -142,7 +142,7 @@ h2 {
 .hero-panel h2 {
     max-width: 720px;
     margin-top: 6px;
-    font-size: clamp(24px, 3vw, 36px);
+    font-size: 36px;
 }
 
 #message,
@@ -381,6 +381,7 @@ button {
 
 table {
     width: 100%;
+    min-width: 620px;
     border-collapse: collapse;
     background: #ffffff;
 }
@@ -454,6 +455,11 @@ tbody tr:hover {
     .sidebar {
         position: static;
         height: auto;
+        padding: 20px;
+    }
+
+    .brand-row {
+        margin-bottom: 18px;
     }
 
     .nav-list {
@@ -465,31 +471,76 @@ tbody tr:hover {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .user-form.role-editing {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .form-actions {
         grid-column: 1 / -1;
     }
 }
 
 @media (max-width: 640px) {
+    .sidebar {
+        padding: 16px;
+    }
+
+    .brand-row {
+        margin-bottom: 14px;
+    }
+
     .main-content {
-        padding: 18px;
+        padding: 16px;
     }
 
     .topbar,
     .section-header,
     .hero-panel,
-    .form-actions,
-    .actions {
+    .form-actions {
         flex-direction: column;
     }
 
     .metric-grid,
     .user-form,
-    .nav-list {
+    .user-form.role-editing {
         grid-template-columns: 1fr;
     }
 
-    button {
+    .nav-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+    }
+
+    .nav-list a {
+        padding: 10px 6px;
+        text-align: center;
+        font-size: 13px;
+    }
+
+    h1 {
+        font-size: 32px;
+    }
+
+    .hero-panel {
+        padding: 20px;
+    }
+
+    .hero-panel h2 {
+        font-size: 26px;
+    }
+
+    .session-badge {
+        white-space: normal;
+    }
+
+    .topbar > .logout-btn,
+    .section-header > button,
+    .form-actions button {
         width: 100%;
+    }
+
+    .toast {
+        right: 16px;
+        bottom: 16px;
     }
 }
