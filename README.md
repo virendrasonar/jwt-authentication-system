@@ -1,492 +1,155 @@
 # AuthVault
 
-AuthVault is a student demonstration project for JWT authentication, refresh tokens, role-based authorization, password recovery, and admin-managed user accounts. Spring Boot serves both the REST API and a responsive HTML/CSS/JavaScript frontend.
+AuthVault is a full-stack authentication and authorization demo built with Spring Boot, Spring Security, JWT, and a responsive HTML/CSS/JavaScript frontend.
 
-> Demo learning project only. Do not enter real passwords, banking details, or personal information. AuthVault is not affiliated with any company or real service.
+> **Student demo project:** Do not enter real passwords, banking details, or personal information. AuthVault is not affiliated with any company or real service.
+
+- **Live application:** [Open AuthVault](https://jwt-authentication-system-production.up.railway.app/login.html)
+- **Create a demo account:** [Sign up](https://jwt-authentication-system-production.up.railway.app/signup.html)
+
+## Project Overview
+
+AuthVault demonstrates a production-style authentication flow in a compact portfolio project. It combines short-lived JWT access tokens, database-backed refresh tokens, BCrypt password hashing, role-based access control, admin user management, and password recovery.
+
+Spring Boot serves both the frontend and REST API. Frontend requests use the page's current origin, so the same build works at `http://localhost:8080` and on Railway without hardcoded API hosts.
+
+Users can create an account, sign in, and view their own dashboard. Administrators receive the same dashboard plus tools to list, create, update, and delete user accounts within enforced safety rules.
 
 ## Features
 
-- User registration and login
+- Registration and login with validated credentials
 - BCrypt password hashing
-- JWT access tokens containing the user's email and role
-- Database-backed refresh tokens
+- HS256 JWT access tokens containing email and role claims
+- Database-backed refresh tokens with a 7-day lifetime
 - `USER` and `ADMIN` role-based authorization
 - Personal dashboard for authenticated users
-- Admin user listing, creation, role changes, and deletion
-- Protection against deleting the logged-in admin or removing the last admin
-- Admin user editing limited to name and role, never passwords
-- Password visibility controls on login, signup, reset, and admin create-user forms
+- Admin user listing, creation, role updates, and deletion
+- Admin password visibility toggle when creating users
+- Admin editing limited to user name and role, never passwords
+- Protection against deleting the active admin or removing the final admin
 - Forgot-password flow with 15-minute, one-time reset tokens
-- Rejection of password resets that reuse the current password
-- Refresh-session invalidation after a successful password reset
+- Prevention of password resets that reuse the current password
+- Refresh-session invalidation after successful password reset
+- Same-origin API configuration for local and Railway environments
 - Responsive layouts for desktop, tablet, and mobile
-- MySQL for local development, PostgreSQL on Railway, and H2 for tests
+- MySQL locally, PostgreSQL in production, and H2 for tests
 
-## Technology
+## Screenshots
 
-- Java 17
-- Spring Boot 3.5
-- Spring Web
-- Spring Security
-- Spring Data JPA and Hibernate
-- Bean Validation
-- JJWT 0.11.5
-- BCrypt
-- MySQL 8 for local development
-- PostgreSQL for Railway production
-- H2 for automated tests
-- HTML, CSS, and vanilla JavaScript
-- Maven Wrapper
+### Login
 
-## Architecture
+![Login](docs/images/login.png)
+
+### Dashboard
+
+![Dashboard](docs/images/dashboard.png)
+
+### Admin Panel
+
+![Admin Panel](docs/images/admin.png)
+
+## Tech Stack
+
+| Area | Technology |
+| --- | --- |
+| Language | Java 17 |
+| Backend | Spring Boot 3.5, Spring Web |
+| Security | Spring Security, JJWT 0.11.5, BCrypt |
+| Persistence | Spring Data JPA, Hibernate |
+| Validation | Jakarta Bean Validation |
+| Local database | MySQL 8 |
+| Production database | PostgreSQL on Railway |
+| Test database | H2 |
+| Frontend | HTML, CSS, vanilla JavaScript |
+| Build | Maven Wrapper |
+
+## Architecture Overview
 
 ```mermaid
 flowchart LR
-    Browser["HTML/CSS/JavaScript frontend"] -->|"Auth requests"| Auth["/auth/**"]
-    Browser -->|"Bearer access token"| Dashboard["/dashboard"]
-    Browser -->|"Bearer ADMIN token"| Admin["/admin/**"]
-    Auth --> Services["Spring services"]
+    Browser["Responsive web frontend"] -->|"Public authentication requests"| Auth["/auth/**"]
+    Browser -->|"Bearer JWT"| Dashboard["/dashboard"]
+    Browser -->|"Bearer ADMIN JWT"| Admin["/admin/**"]
+    Auth --> Services["Application services"]
     Dashboard --> Services
     Admin --> Services
     Services --> JPA["Spring Data JPA"]
-    JPA --> DB["MySQL local / PostgreSQL production"]
+    JPA --> DB["MySQL / PostgreSQL"]
 ```
 
-The frontend uses `api-config.js` to build API URLs from `window.location.origin`. Local pages therefore call the local Spring Boot server, while deployed Railway pages call the same Railway service. No deployment URL is hardcoded in frontend requests.
+### Runtime Layers
 
-## Authentication Flow
+- **Frontend:** Static pages and JavaScript served by Spring Boot.
+- **Controllers:** Authentication, dashboard, and admin REST endpoints.
+- **Security:** Stateless filter chain plus `JwtFilter` for bearer-token authentication.
+- **Services:** Authentication, refresh-token, and password-reset business logic.
+- **Persistence:** JPA repositories for users, refresh tokens, and reset tokens.
+- **Profiles:** MySQL for `local`, H2 for `test`, PostgreSQL for `prod`.
 
-1. A user registers or submits an email and password to `/auth/login`.
+`api-config.js` builds API URLs from `window.location.origin`. Local pages call the local backend, while deployed pages call the Railway service that served them.
+
+## Authentication & Authorization Flow
+
+1. A user registers or submits credentials to `/auth/login`.
 2. The backend verifies the password against its BCrypt hash.
-3. The backend returns a signed JWT access token and a random refresh token.
-4. The frontend stores both tokens in `localStorage`.
-5. Protected requests include the access token:
-
-```http
-Authorization: Bearer <accessToken>
-```
-
-6. `JwtFilter` validates the signature and expiry, extracts the email and role, and creates the Spring Security authentication context.
+3. The backend returns a signed access token, refresh token, and basic user details.
+4. The frontend stores tokens in `localStorage` for this demonstration project.
+5. Protected requests send `Authorization: Bearer <accessToken>`.
+6. `JwtFilter` validates the JWT, extracts the email and role, and creates the Spring Security context.
 7. Spring Security permits authenticated dashboard requests and requires `ROLE_ADMIN` for `/admin/**`.
 
-### Access Tokens
+### Token Behavior
 
-JWT access tokens are signed with HS256 and contain:
+| Token | Storage | Lifetime | Purpose |
+| --- | --- | --- | --- |
+| Access token | Browser `localStorage` | 15 minutes by default | Authenticate protected API requests |
+| Refresh token | Browser and database | 7 days | Issue a new access token |
+| Reset token | Database and reset URL | 15 minutes | Authorize one password reset |
 
-- `sub`: user email
-- `role`: `USER` or `ADMIN`
-- `iat`: issued-at time
-- `exp`: expiry time
+Access tokens are signed with HS256 and include `sub` (email), `role`, `iat`, and `exp` claims. Login and registration replace older refresh tokens for the user. Logout removes refresh sessions.
 
-The default access-token lifetime is 15 minutes (`900000` milliseconds).
-
-### Refresh Tokens
-
-- Refresh tokens are random UUID values stored in `refresh_tokens`.
-- They expire after 7 days.
-- Login and registration replace older refresh tokens for that user.
-- `/auth/refresh` issues a new access token from a valid refresh token.
-- `/auth/logout` deletes the user's refresh-token sessions.
-- A successful password reset also deletes all refresh tokens for that user.
-
-## Roles And Permissions
+### Roles
 
 | Capability | USER | ADMIN |
 | --- | :---: | :---: |
 | Register and login | Yes | Yes |
 | View own dashboard | Yes | Yes |
-| List all users | No | Yes |
+| List and view users | No | Yes |
 | Create users | No | Yes |
-| Edit user name and role | No | Yes |
+| Update user name and role | No | Yes |
 | Delete users | No | Yes |
-| Edit user passwords from admin panel | No | No |
+| Edit passwords from admin panel | No | No |
 
-Additional admin protections:
+Normal users do not see the admin panel. Attempting to open the Users section displays an administrator-access message.
 
-- An admin cannot delete their own logged-in account.
-- An admin cannot change their own role while logged in.
-- The final remaining admin cannot be demoted or deleted.
-- Deleting a user also deletes related refresh and password-reset tokens.
+## Security Features
 
-Normal users do not see the admin panel. Attempting to open the Users section shows an administrator-access message.
+- Passwords are stored as BCrypt hashes and never compared as plain text.
+- Security is stateless; HTTP Basic is disabled.
+- JWT signatures and expiry times are validated on protected requests.
+- `/dashboard` requires authentication and `/admin/**` requires `ADMIN` authority.
+- The dashboard page shell is public because browser navigation cannot attach a bearer header; its data comes from the protected dashboard API.
+- Admins cannot delete their own active account.
+- The final admin cannot be deleted or demoted.
+- Admins cannot change their own role while logged in.
+- Admin updates accept name and role only, not email or password.
+- Deleting a user also deletes related refresh and reset tokens.
+- Reset tokens expire after 15 minutes and older tokens are replaced.
+- A reset request using the current password is rejected without consuming the token.
+- A successful reset deletes the used token and all previous refresh sessions.
+- CORS uses an explicit, environment-configurable origin allowlist.
 
-## Password Rules
+### Password Rules
 
-New and reset passwords must:
+Passwords must be 8 to 20 characters and contain an uppercase letter, lowercase letter, number, and special character. Names must be 3 to 50 characters and contain only letters and spaces.
 
-- Be 8 to 20 characters long
-- Include an uppercase letter
-- Include a lowercase letter
-- Include a number
-- Include a special character
+### Public And Protected Routes
 
-Names must be 3 to 50 characters and contain only letters and spaces.
-
-## Password Reset Flow
-
-1. `/auth/forgot-password` verifies the account email.
-2. Any older reset token for that user is removed.
-3. A new UUID reset token is stored in `password_reset_tokens` with a 15-minute expiry.
-4. The demo API returns a reset URL for `reset-password.html`.
-5. `/auth/reset-password` validates the token and password rules.
-6. If the new password matches the current BCrypt hash, the request is rejected with:
-
-```text
-Please enter a new password different from your current password.
-```
-
-The password is not changed and the token remains valid for another attempt.
-
-7. If the new password is different, the backend hashes it, updates the user, deletes old refresh sessions, and deletes the used reset token.
-
-Reset tokens are deliberately temporary. A row exists after requesting a reset and is removed after successful use, expiry handling, a newer reset request, or user deletion.
-
-## Security Rules
-
-Public pages and APIs include:
-
-- `/`
-- `/login.html`
-- `/signup.html`
-- `/dashboard.html` (page shell only)
-- `/forgot-password.html`
-- `/reset-password.html`
-- `/auth/**`
-- Public CSS, JavaScript, images, and favicon files
-
-Protected APIs:
-
-- `/dashboard`: valid JWT required
-- `/admin/**`: valid JWT with `ADMIN` role required
-- Any backend route not explicitly public: authentication required
-
-The dashboard HTML must be publicly loadable because normal browser navigation cannot attach a bearer token. Its JavaScript immediately checks for a token and obtains all user data from the protected `/dashboard` API.
-
-Security is stateless, HTTP Basic is disabled, and the JWT filter runs before Spring Security's username/password filter.
-
-## API Reference
-
-### Register
-
-```http
-POST /auth/register
-Content-Type: application/json
-```
-
-```json
-{
-  "name": "Demo User",
-  "email": "demo.user@example.com",
-  "password": "Demo@1234"
-}
-```
-
-Self-registered accounts receive the `USER` role.
-
-### Login
-
-```http
-POST /auth/login
-Content-Type: application/json
-```
-
-```json
-{
-  "email": "demo.user@example.com",
-  "password": "Demo@1234"
-}
-```
-
-Authentication responses contain the access token, refresh token, user ID, name, email, and role.
-
-### Refresh Access Token
-
-```http
-POST /auth/refresh
-Content-Type: application/json
-```
-
-```json
-{
-  "refreshToken": "<refreshToken>"
-}
-```
-
-### Logout
-
-```http
-POST /auth/logout
-Content-Type: application/json
-```
-
-```json
-{
-  "refreshToken": "<refreshToken>"
-}
-```
-
-### Request Password Reset
-
-```http
-POST /auth/forgot-password
-Content-Type: application/json
-```
-
-```json
-{
-  "email": "demo.user@example.com"
-}
-```
-
-### Reset Password
-
-```http
-POST /auth/reset-password
-Content-Type: application/json
-```
-
-```json
-{
-  "token": "<resetToken>",
-  "password": "NewDemo@1234"
-}
-```
-
-### User Dashboard
-
-```http
-GET /dashboard
-Authorization: Bearer <accessToken>
-```
-
-Returns the authenticated user's ID, name, email, role, and dashboard message.
-
-### List Users (ADMIN)
-
-```http
-GET /admin/users
-Authorization: Bearer <adminAccessToken>
-```
-
-### Get User (ADMIN)
-
-```http
-GET /admin/users/{id}
-Authorization: Bearer <adminAccessToken>
-```
-
-### Create User (ADMIN)
-
-```http
-POST /admin/users
-Authorization: Bearer <adminAccessToken>
-Content-Type: application/json
-```
-
-```json
-{
-  "name": "Team Member",
-  "email": "member@example.com",
-  "password": "Member@1234",
-  "role": "USER"
-}
-```
-
-### Update User (ADMIN)
-
-Only the name and role are editable. Email and password editing are intentionally unavailable.
-
-```http
-PUT /admin/users/{id}
-Authorization: Bearer <adminAccessToken>
-Content-Type: application/json
-```
-
-```json
-{
-  "name": "Updated Name",
-  "role": "ADMIN"
-}
-```
-
-### Delete User (ADMIN)
-
-```http
-DELETE /admin/users/{id}
-Authorization: Bearer <adminAccessToken>
-```
-
-## Frontend Pages
-
-| Page | Purpose |
+| Access | Routes |
 | --- | --- |
-| `/login.html` | Sign in and open the dashboard |
-| `/signup.html` | Create a USER account |
-| `/dashboard.html` | User dashboard and conditional admin tools |
-| `/forgot-password.html` | Generate a demo reset link |
-| `/reset-password.html?token=...` | Set a new password |
-
-The UI clearly identifies itself as a student demo and warns users not to enter real credentials or personal information.
-
-## Database Model
-
-### `users`
-
-- Unique email
-- BCrypt password hash
-- Name and role
-- Created and updated timestamps
-
-### `refresh_tokens`
-
-- Unique UUID token
-- Expiry timestamp
-- User foreign key
-
-### `password_reset_tokens`
-
-- Unique UUID token
-- Expiry timestamp
-- User foreign key
-- Compatibility fields for consumed-token state
-
-Hibernate uses `ddl-auto=update` to create or update tables. It does not create the MySQL database itself.
-
-## Local Development With MySQL
-
-### Prerequisites
-
-- Java 17 or newer
-- MySQL 8 running on port `3306`
-- PowerShell or another terminal
-
-### 1. Create The Database
-
-```sql
-CREATE DATABASE jwt_auth_db
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-```
-
-### 2. Configure Local Credentials
-
-The local profile is configured in:
-
-```text
-src/main/resources/application-local.properties
-```
-
-It uses:
-
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/jwt_auth_db
-spring.datasource.username=root
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
-```
-
-Set the local password in that file to match your MySQL installation. Do not commit or publish real database credentials.
-
-### 3. Configure A Local Admin
-
-The project does not contain a permanent hardcoded admin password. Set environment variables before startup:
-
-```powershell
-$env:ADMIN_NAME="Admin"
-$env:ADMIN_EMAIL="admin@example.com"
-$env:ADMIN_PASSWORD="Admin@123"
-```
-
-These values are demo credentials. Do not reuse them in production.
-
-`AdminBootstrapConfig` creates the admin if it does not exist or updates it at startup when both email and password are supplied. The password is stored as a BCrypt hash.
-
-### 4. Run The Application
-
-The default profile is `local`:
-
-```powershell
-.\mvnw.cmd spring-boot:run
-```
-
-Open:
-
-```text
-http://localhost:8080/login.html
-```
-
-## Application Profiles
-
-The default profile selection is:
-
-```properties
-spring.profiles.active=${SPRING_PROFILES_ACTIVE:local}
-```
-
-| Profile | Database | Purpose |
-| --- | --- | --- |
-| `local` | MySQL | Local development |
-| `test` | In-memory H2 | Automated tests |
-| `prod` | PostgreSQL | Railway deployment |
-
-## Railway Deployment
-
-Production uses the `prod` profile and PostgreSQL. The deployed application URL is:
-
-```text
-https://jwt-authentication-system-production.up.railway.app
-```
-
-Configure these Railway environment variables:
-
-```text
-SPRING_PROFILES_ACTIVE=prod
-DATABASE_URL=<Railway PostgreSQL connection URL>
-JWT_SECRET=<long random secret of at least 32 bytes>
-ADMIN_NAME=Admin
-ADMIN_EMAIL=<production admin email>
-ADMIN_PASSWORD=<strong production admin password>
-```
-
-Optional variables:
-
-```text
-JWT_EXPIRATION=900000
-DB_USERNAME=<username if not included in DATABASE_URL>
-DB_PASSWORD=<password if not included in DATABASE_URL>
-CORS_ALLOWED_ORIGINS=<comma-separated allowed frontend origins>
-```
-
-Railway supplies `PORT` automatically; the application falls back to `8080` locally. `DATABASE_URL` may use either format:
-
-```text
-postgresql://username:password@host:5432/database
-```
-
-```text
-jdbc:postgresql://host:5432/database
-```
-
-`ProductionDataSourceConfig` converts a standard PostgreSQL URL into a JDBC URL and configures the PostgreSQL driver. Keep database credentials and JWT secrets in Railway variables, never in frontend files.
-
-Because the frontend and API are served by the same Spring Boot deployment, normal production requests are same-origin. `CORS_ALLOWED_ORIGINS` is available when an additional frontend origin must be allowed.
-
-## Build And Test
-
-Run tests:
-
-```powershell
-.\mvnw.cmd test
-```
-
-Build the production JAR:
-
-```powershell
-.\mvnw.cmd clean package
-```
-
-The packaged application is created under `target/`.
+| Public | `/`, auth pages, `/dashboard.html` shell, `/auth/**`, static assets |
+| Authenticated | `/dashboard` and any backend route not explicitly public |
+| ADMIN only | `/admin/**` |
 
 ## Project Structure
 
@@ -495,12 +158,12 @@ src/
 |-- main/
 |   |-- java/com/auth/authproject/
 |   |   |-- config/       Security, CORS, admin bootstrap, production datasource
-|   |   |-- controller/   Auth, dashboard, and admin endpoints
-|   |   |-- dto/          Request and response validation models
+|   |   |-- controller/   Authentication, dashboard, and admin endpoints
+|   |   |-- dto/          Request/response models and validation
 |   |   |-- entity/       User, refresh-token, and reset-token entities
-|   |   |-- exception/    API exception responses
+|   |   |-- exception/    Consistent API error responses
 |   |   |-- repository/   Spring Data JPA repositories
-|   |   |-- security/     JWT creation and request filter
+|   |   |-- security/     JWT service and request filter
 |   |   `-- service/      Authentication and token business logic
 |   `-- resources/
 |       |-- static/       Frontend pages, styles, and JavaScript
@@ -512,16 +175,181 @@ src/
     `-- resources/        H2 test profile
 ```
 
+## Local Development
+
+### Prerequisites
+
+- Java 17 or newer
+- MySQL 8 listening on port `3306`
+- PowerShell or another terminal
+
+### 1. Create The MySQL Database
+
+Hibernate creates and updates tables, but it does not create the database itself.
+
+```sql
+CREATE DATABASE jwt_auth_db
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+```
+
+### 2. Configure Local MySQL
+
+Update `src/main/resources/application-local.properties` for your installation:
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/jwt_auth_db
+spring.datasource.username=root
+spring.datasource.password=<your-local-mysql-password>
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+```
+
+Do not commit or publish real database credentials.
+
+### 3. Configure A Local Admin
+
+The project has no permanent hardcoded admin password. Set demo environment variables before startup:
+
+```powershell
+$env:ADMIN_NAME="Admin"
+$env:ADMIN_EMAIL="admin@example.com"
+$env:ADMIN_PASSWORD="Admin@123"
+```
+
+`AdminBootstrapConfig` creates or updates this account at startup and stores the password as a BCrypt hash. Do not reuse demo credentials in production.
+
+### 4. Run
+
+The default profile is `local`:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+Open [http://localhost:8080/login.html](http://localhost:8080/login.html).
+
+## Production Deployment (Railway)
+
+**Live deployment:** [https://jwt-authentication-system-production.up.railway.app](https://jwt-authentication-system-production.up.railway.app/login.html)
+
+1. Create a Railway service from this repository.
+2. Provision a Railway PostgreSQL database.
+3. Add the environment variables listed below.
+4. Set `SPRING_PROFILES_ACTIVE=prod`.
+5. Deploy the Spring Boot application.
+
+Railway supplies `PORT` automatically. The application uses Railway's value and falls back to port `8080` locally.
+
+`ProductionDataSourceConfig` accepts a standard PostgreSQL URL, converts it to JDBC format when necessary, and configures the PostgreSQL driver. Supported URL forms are:
+
+```text
+postgresql://username:password@host:5432/database
+jdbc:postgresql://host:5432/database
+```
+
+The frontend and API are served by the same Railway service, so normal production requests are same-origin.
+
+## Environment Variables
+
+| Variable | Required In Production | Default | Purpose |
+| --- | :---: | --- | --- |
+| `SPRING_PROFILES_ACTIVE` | Yes | `local` | Select `local`, `test`, or `prod` configuration |
+| `DATABASE_URL` | Yes | None | Railway PostgreSQL URL |
+| `JWT_SECRET` | Yes | Development-only fallback | HMAC signing key; use at least 32 random bytes |
+| `JWT_EXPIRATION` | No | `900000` | Access-token lifetime in milliseconds |
+| `ADMIN_NAME` | No | `Admin` | Bootstrapped admin display name |
+| `ADMIN_EMAIL` | For bootstrap | Empty | Bootstrapped admin email |
+| `ADMIN_PASSWORD` | For bootstrap | Empty | Bootstrapped admin password |
+| `DB_USERNAME` | No | Parsed from URL | Optional PostgreSQL username override |
+| `DB_PASSWORD` | No | Parsed from URL | Optional PostgreSQL password override |
+| `CORS_ALLOWED_ORIGINS` | No | Railway application origin | Comma-separated allowed frontend origins |
+| `PORT` | Supplied by Railway | `8080` | HTTP server port |
+
+The production admin is created or updated only when both `ADMIN_EMAIL` and `ADMIN_PASSWORD` are present.
+
+## Database
+
+| Table | Important Fields | Purpose |
+| --- | --- | --- |
+| `users` | `email`, BCrypt `password`, `role`, timestamps | User identities and authorization roles |
+| `refresh_tokens` | UUID `token`, `expiry_date`, `user_id` | Persistent refresh sessions |
+| `password_reset_tokens` | UUID `token`, `expiry_date`, `user_id`, compatibility status fields | Temporary password-reset authorization |
+
+Relationships use user foreign keys. User deletion cleans up associated token records before deleting the account. Hibernate uses `ddl-auto=update` in the application configuration.
+
+### Profiles
+
+| Profile | Database | Use |
+| --- | --- | --- |
+| `local` | MySQL | Local development |
+| `test` | In-memory H2 | Automated tests |
+| `prod` | PostgreSQL | Railway deployment |
+
+The default selection is:
+
+```properties
+spring.profiles.active=${SPRING_PROFILES_ACTIVE:local}
+```
+
+## API Overview
+
+| Method | Endpoint | Access | Purpose |
+| --- | --- | --- | --- |
+| `POST` | `/auth/register` | Public | Register a `USER` account |
+| `POST` | `/auth/login` | Public | Authenticate and issue tokens |
+| `POST` | `/auth/refresh` | Public with refresh token | Issue a new access token |
+| `POST` | `/auth/logout` | Public with refresh token | Delete refresh sessions |
+| `POST` | `/auth/forgot-password` | Public | Generate a 15-minute reset token |
+| `POST` | `/auth/reset-password` | Public with reset token | Set a different password |
+| `GET` | `/dashboard` | Authenticated | Return the current user's dashboard data |
+| `GET` | `/admin/users` | ADMIN | List users |
+| `GET` | `/admin/users/{id}` | ADMIN | Get one user |
+| `POST` | `/admin/users` | ADMIN | Create a user |
+| `PUT` | `/admin/users/{id}` | ADMIN | Update name and role |
+| `DELETE` | `/admin/users/{id}` | ADMIN | Delete a user and token records |
+
+Detailed payloads, responses, validation rules, and examples are available in [docs/API.md](docs/API.md).
+
+## Build & Test
+
+Run the test suite:
+
+```powershell
+.\mvnw.cmd test
+```
+
+Build the executable JAR:
+
+```powershell
+.\mvnw.cmd clean package
+```
+
+The packaged application is written to `target/`.
+
 ## Security Notes
 
-- Use a long, random `JWT_SECRET` in production.
-- Do not use demo admin credentials in production.
+- Use a long, random `JWT_SECRET` in production; never use the development fallback.
+- Do not use local demo admin credentials in production.
 - Never commit database URLs, passwords, reset tokens, or JWT secrets.
-- Use HTTPS in production.
-- Passwords are always stored as BCrypt hashes and are never compared as plain text.
-- The demo reset link is returned in the API response. A real application should send it through a verified email provider and avoid exposing the raw token in general UI.
-- Tokens are stored in `localStorage` for demonstration simplicity. A hardened production system should consider secure, HTTP-only cookies, stricter content security policies, rate limiting, account lockout controls, and audited email delivery.
-- The project intentionally displays student-demo and test-credential warnings to prevent confusion with a real service.
+- Keep production traffic on HTTPS.
+- The demo returns reset links in API responses. A real application should deliver links through a verified email provider without exposing raw tokens in general UI.
+- `localStorage` keeps this demo easy to inspect. A hardened system should consider secure HTTP-only cookies and appropriate CSRF protection.
+- Production hardening should also include rate limiting, account lockout controls, a strict Content Security Policy, secret rotation, and security-event monitoring.
+- AuthVault intentionally displays student-demo and test-credential warnings to avoid being mistaken for a real service.
+
+## Future Improvements
+
+- Docker Compose support for the application and local MySQL
+- Email delivery for password-reset links
+- OAuth2 or OpenID Connect login
+- User profile management
+- Authentication rate limiting and lockout policies
+- Structured audit logging
+- Expanded unit, integration, and security test coverage
+
+These are roadmap ideas and are not implemented in the current project.
 
 ## License
 
