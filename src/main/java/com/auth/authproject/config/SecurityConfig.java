@@ -39,10 +39,21 @@ public class SecurityConfig {
                     "/",
                     "/login.html",
                     "/signup.html",
+                    "/forgot-password.html",
+                    "/reset-password.html",
                     "/auth/**",
-                    "/**/*.html",
-                    "/**/*.css",
-                    "/**/*.js"
+                    "/api/auth/**",
+                    "/css/**",
+                    "/js/**",
+                    "/images/**",
+                    "/favicon.ico",
+                    "/login.css",
+                    "/signup.css",
+                    "/style.css",
+                    "/login.js",
+                    "/signup.js",
+                    "/forgot-password.js",
+                    "/reset-password.js"
                 ).permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
