@@ -238,11 +238,11 @@ Authorization: Bearer <adminAccessToken>
 - `/forgot-password.html`
 - `/reset-password.html`
 
-The frontend uses same-origin API calls such as `/auth/login` and `/dashboard`, so it works both locally and on Render after deployment.
+The frontend resolves API paths through `api-config.js`, which currently targets the Railway deployment.
 
 ## Local Development
 
-Local is the default profile. It uses an H2 file database at `./data/authproject`.
+Local is the default profile. It uses the MySQL database `jwt_auth_db` on port `3306`.
 
 ```powershell
 .\mvnw.cmd spring-boot:run
@@ -269,11 +269,11 @@ The admin bootstrap runs on startup. If `ADMIN_EMAIL` and `ADMIN_PASSWORD` are s
 
 Production should use the `prod` profile and PostgreSQL.
 
-Required Render environment variables:
+Required Railway environment variables:
 
 ```text
 SPRING_PROFILES_ACTIVE=prod
-DATABASE_URL=<your Render internal PostgreSQL URL>
+DATABASE_URL=<your Railway PostgreSQL URL>
 JWT_SECRET=<strong long secret>
 ADMIN_NAME=Admin
 ADMIN_EMAIL=<your admin email>
@@ -344,6 +344,7 @@ If these are missing, the app will not seed an admin account. If they are presen
 - Spring Data JPA
 - JWT with `jjwt`
 - BCrypt password hashing
-- H2 for local development
+- MySQL for local development
+- H2 for automated tests
 - PostgreSQL for production
 - HTML, CSS, and JavaScript frontend

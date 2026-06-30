@@ -45,7 +45,7 @@ public class ProductionDataSourceConfig {
     private DatabaseConnection parseDatabaseUrl(String databaseUrl) {
         if (databaseUrl == null || databaseUrl.isBlank()) {
             throw new IllegalStateException(
-                    "Production database URL is required. Set DATABASE_URL to your Render internal PostgreSQL URL."
+                    "Production database URL is required. Set DATABASE_URL to your Railway PostgreSQL URL."
             );
         }
 
